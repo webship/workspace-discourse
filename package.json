@@ -1,0 +1,98 @@
+{
+  "name": "@webship.co/workspace-discourse",
+  "version": "1.0.0",
+  "description": "Discourse for Webship Workspace: the builder (`cmd-discourse-project.sh`, a forum installed the official way with discourse_docker's launcher and run as a service of the project, with its sample data on request) and the forum's Rails and rake tool in every sites folder, the default accounts, the Discourse step pack wired into the testing setup, and its AI items in their folders: two agents, a skill, a command and two prompts.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webship/workspace-discourse.git"
+  },
+  "files": [
+    "dist/src",
+    "ai",
+    "commands",
+    "features",
+    "scripts",
+    "testing",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "workspacePlugin": {
+    "name": "discourse",
+    "label": "Discourse",
+    "needs": [
+      [
+        "dev",
+        "test",
+        "sandboxes",
+        "demos"
+      ],
+      "ai-agents",
+      "ai-skills",
+      "ai-commands",
+      "ai-prompts"
+    ],
+    "commands": {
+      "types": [
+        "sites"
+      ],
+      "workspaces": [
+        "dev",
+        "test",
+        "sandboxes",
+        "demos"
+      ],
+      "files": [
+        "commands/cmd-discourse-project.sh",
+        "commands/cmd-tools-discourse-rails.sh"
+      ]
+    },
+    "scripts": {
+      "functions": [
+        "scripts/functions/fun-discourse.sh"
+      ],
+      "args": [
+        "scripts/args/arg-discourse.sh",
+        "scripts/args/arg-discourse-rails.sh"
+      ],
+      "machine": [
+        "scripts/discourse-site.rb",
+        "testing/site.feature"
+      ]
+    },
+    "ai": {
+      "agents": [
+        "ai/agents/discourse-site-builder.md",
+        "ai/agents/discourse-tester.md"
+      ],
+      "skills": [
+        "ai/skills/discourse-scenarios"
+      ],
+      "commands": [
+        "ai/commands/discourse-test.md"
+      ],
+      "prompts": [
+        "ai/prompts/discourse-build-and-test.md",
+        "ai/prompts/discourse-scenarios-for-an-area.md"
+      ]
+    },
+    "features": [
+      "features/discourse.feature"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@webship.co/workspace-plugin-api": "^1.0.11",
+    "typescript": "^5.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
