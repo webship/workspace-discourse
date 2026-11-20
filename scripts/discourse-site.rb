@@ -94,7 +94,8 @@ def account!(spec)
   user.username = spec["username"] if user.username != spec["username"]
   user.email = spec["email"] if user.email != spec["email"]
   user.name = spec["name"]
-  user.password = spec["password"]
+  # The forum refuses a password that is the account's current one: it is set only when it differs.
+  user.password = spec["password"] if created || !user.confirm_password?(spec["password"])
   user.active = true
   user.approved = true
   user.approved_at ||= Time.zone.now
@@ -137,7 +138,7 @@ def owner!
   return say("no owner #{spec["email"]}: make it with rake admin:create first") unless user
   user.username = spec["username"] if spec["username"].present? && user.username != spec["username"]
   user.name = spec["name"] if spec["name"].present?
-  user.password = spec["password"] if spec["password"].present?
+  user.password = spec["password"] if spec["password"].present? && !user.confirm_password?(spec["password"])
   user.active = true
   user.approved = true
   user.save!

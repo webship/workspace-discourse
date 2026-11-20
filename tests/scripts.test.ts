@@ -162,7 +162,8 @@ test('the builder writes the launcher\'s definition and the project\'s service: 
 test('the testing hook adds the step pack, the users registry, the data admin, the tags and a first feature, once', () => {
   const p = project('discourse');
   const log = path.join(p.root, 'ddev.log');
-  const run = () => bash(`cd ${p.dir} && testing_configure_discourse ${p.dir}`, { WORKSPACE_ROOT: p.root, WORKSPACE_SCRIPTS: p.scripts, doc_name: 'dev', PROJECT_NAME: 'site1', DDEV_LOG: log, account_name: 'owner1', account_mail: 'owner1@example.com', account_pass: 'x' });
+  // The forum answers at once here: the wait for it is the recorder's.
+  const run = () => bash(`discourse_wait() { echo "ddev wait" >> "${log}" ; } ; cd ${p.dir} && testing_configure_discourse ${p.dir}`, { WORKSPACE_ROOT: p.root, WORKSPACE_SCRIPTS: p.scripts, doc_name: 'dev', PROJECT_NAME: 'site1', DDEV_LOG: log, account_name: 'owner1', account_mail: 'owner1@example.com', account_pass: 'x' });
   const r = run();
   assert.strictEqual(r.status, 0, r.stderr + r.stdout);
   const pkg = JSON.parse(fs.readFileSync(path.join(p.dir, 'package.json'), 'utf8'));
@@ -176,6 +177,8 @@ test('the testing hook adds the step pack, the users registry, the data admin, t
   assert.match(cucumber, /dataAdmin: process\.env\.DATA_ADMIN \|\| 'administrator',/);
   assert.match(cucumber, /tags: process\.env\.CUCUMBER_TAGS \|\| 'not @wip and not @must-fail',/);
   assert.match(cucumber, /Resident credentials or empty 'allowCredentials' lists are not supported\|net::ERR_NETWORK_CHANGED/);
+  // The router serves the forum, so the web container has no address of its own: the suite gets the forum's.
+  assert.match(cucumber, /launchUrl: process\.env\.LAUNCH_URL \|\| 'https:\/\/site1\.ddev\.site',/);
   // Still a module node can load, with the registry where webship-js reads it.
   const loaded = spawnSync(process.execPath, ['-e', `const c = require(${JSON.stringify(path.join(p.dir, 'cucumber.js'))}).default; console.log(JSON.stringify([c.require, Object.keys(c.worldParameters.users), c.tags, c.worldParameters.dataAdmin, c.worldParameters.users.newuser.username, c.worldParameters.javascript.mode]))`], { encoding: 'utf8', env: { ...process.env, CUCUMBER_TAGS: '' } });
   assert.strictEqual(loaded.status, 0, loaded.stderr);
@@ -187,7 +190,7 @@ test('the testing hook adds the step pack, the users registry, the data admin, t
   assert.strictEqual(username, 'newuser');
   assert.strictEqual(mode, 'warn');
   assert.ok(fs.existsSync(path.join(p.dir, 'tests', 'features', 'site.feature')));
-  assert.match(fs.readFileSync(log, 'utf8'), /DISCOURSE_SITE_VERBS='accounts' rails runner -$/m, 'the forum gets the default accounts');
+  assert.match(fs.readFileSync(log, 'utf8'), /^ddev wait\n[\s\S]*DISCOURSE_SITE_VERBS='accounts' rails runner -$/m, 'the forum gets the default accounts, once it answers');
   // Again, after a person changed the feature: nothing is doubled, nothing is reset.
   fs.writeFileSync(path.join(p.dir, 'tests', 'features', 'site.feature'), 'Feature: mine\n');
   assert.strictEqual(run().status, 0);

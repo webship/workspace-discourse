@@ -176,9 +176,10 @@ function discourse_rake() {
   ddev exec -s discourse "rake $*" < /dev/null ;
 }
 
-# The release the forum runs.
+# The release the forum runs, as its code says it (a channel such as release is a moving tag: several
+# tags point at the same commit, so the version is read from lib/version.rb, not from git).
 function discourse_version() {
-  ddev exec -s discourse "sudo -u discourse git -C /var/www/discourse describe --tags" < /dev/null 2>/dev/null | tr -d '\r' | tail -n 1 ;
+  ddev exec -s discourse "sed -n 's/.*STRING = \"\\(.*\\)\".*/\\1/p' /var/www/discourse/lib/version.rb" < /dev/null 2>/dev/null | tr -d '\r' | head -n 1 ;
 }
 
 # Run verbs of discourse-site.rb (settings, accounts, cancel, list, seed) with the forum's Rails, in its
@@ -425,10 +426,15 @@ function testing_configure_discourse() {
     registry="${registry}${user}|${!user_name}|${!user_mail}|${!user_password}"$'\n' ;
   done
 
-  python3 - "${project_path}" "${DISCOURSE_STEPS_PACKAGE}" "${DISCOURSE_STEPS_VERSION}" 'DISCOURSE' "${registry}" <<'PYEOF' || return 1
+  # The address of the forum. The router serves the forum, not the web container, so the container tool
+  # has no address to hand the web container (LAUNCH_URL is empty there): the suite gets it here.
+  local site_name ;
+  site_name="$(sed -n 's/^name:[[:space:]]*"\{0,1\}\([A-Za-z0-9._-]*\)"\{0,1\}[[:space:]]*$/\1/p' "${project_path}/.ddev/config.yaml" | head -n 1)" ;
+
+  python3 - "${project_path}" "${DISCOURSE_STEPS_PACKAGE}" "${DISCOURSE_STEPS_VERSION}" 'DISCOURSE' "${registry}" "https://${site_name:-${PROJECT_NAME}}.ddev.site" <<'PYEOF' || return 1
 import json, re, sys
 
-project, pack, version, prefix, registry = sys.argv[1:6]
+project, pack, version, prefix, registry, address = sys.argv[1:7]
 
 # package.json: the pack as a dev dependency, at the release line this plugin was proven on.
 pkg_file = project + '/package.json'
@@ -499,6 +505,13 @@ if not re.search(r"^[ \t]*users:[ \t]*\{", src, re.M):
 if additions:
     src = src[:world.end()] + '\n' + '\n'.join(additions) + src[world.end():]
 
+# The address the suite opens when LAUNCH_URL is not set, which it is not in this project: the
+# placeholder of the scaffold becomes the address of the forum. An address somebody set stays.
+placeholder = "process.env.LAUNCH_URL || 'http://localhost:8080'"
+if placeholder in src:
+    src = src.replace(placeholder, "process.env.LAUNCH_URL || '%s'" % address)
+    print('  cucumber.js: the address of the forum (%s)' % address)
+
 if src != before:
     open(cucumber_file, 'w').write(src)
 PYEOF
@@ -511,8 +524,9 @@ PYEOF
       && echo "  tests/features/site.feature: a first feature for the forum" ;
   fi
 
-  # The scenarios log in as the default accounts: make sure a forum that has its admin has them.
-  if ( add_discourse_users > /dev/null 2>&1 ) ; then
+  # The scenarios log in as the default accounts: make sure a forum that has its admin has them, once
+  # the forum answers (the testing setup may just have restarted the project, and the forum with it).
+  if ( cd "${project_path}" && discourse_wait > /dev/null 2>&1 && add_discourse_users > /dev/null 2>&1 ) ; then
     echo "  the default accounts are in the forum (${users[*]})" ;
   else
     echo "  The default accounts could not be written: is the forum running (ddev start in ${project_path})?" ;

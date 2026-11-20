@@ -52,6 +52,7 @@ test('the site script is run by the forum\'s own Rails, with every verb the func
   for (const verb of ['settings', 'owner', 'accounts', 'cancel', 'list', 'seed']) assert.match(src, new RegExp(`when "${verb}" then`), `discourse-site.rb has the verb ${verb}`);
   assert.match(src, /\$discourse_site_accounts/, 'the accounts come on the first line of the input, never on a command line');
   assert.match(src, /DISCOURSE_SITE_VERBS/, 'the verbs come in an environment variable');
+  assert.match(src, /confirm_password\?/, 'a password is set only when it differs: the forum refuses the current one again');
   const functions = read('scripts/functions/fun-discourse.sh');
   for (const verb of functions.matchAll(/discourse_site ([a-z ]+?) (?:\|\||;)/g)) {
     for (const word of verb[1].split(' ').filter((w) => !w.startsWith('$'))) assert.match(src, new RegExp(`when "${word}" then`), `fun-discourse.sh calls the verb ${word}`);
