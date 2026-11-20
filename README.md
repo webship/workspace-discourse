@@ -193,10 +193,13 @@ bash cmd-tools-testing.sh myforum --run --path tests/features/site.feature
 to `package.json`, lists its step definitions in `cucumber.js` after webship-js's own, writes the users
 registry (the handles above, by their usernames, overridable with `DISCOURSE_<HANDLE>_USERNAME` and
 `DISCOURSE_<HANDLE>_PASSWORD`), `dataAdmin` (the handle the step pack makes and deletes its test topics
-as), the browser messages that are no error of the forum, and the tags that keep the pack's assertions
-that must fail out of a normal run, places `tests/features/site.feature` when the project has none, and
-makes sure the default accounts are in the forum. Run it again and it adds what is missing and keeps
-what you changed.
+as), the browser messages that are no error of the forum, the tags that keep the pack's assertions that
+must fail out of a normal run, and the forum's address (`https://<project>.ddev.site`) in place of the
+starter's `http://localhost:8080`: the router serves the forum, not the web container, so the container
+has no address of its own to give the suite. It places `tests/features/site.feature` when the project
+has none, and makes sure the default accounts are in the forum once it answers again (installing the
+webship-js add-on restarts the project). Run it again and it adds what is missing and keeps what you
+changed.
 
 The suite runs in the project's container, where the network changes of the host (another container
 starting) do not cut the browser's requests.

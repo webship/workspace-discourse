@@ -70,6 +70,8 @@ Feature: Moderation
 - The composer is a rich text editor by default; the preview is the Markdown editor's
   (`I show the composer preview` switches, and the account gets the rich text editor back after).
 - Staff see unlisted topics in the lists: check an unlisted topic's absence as a member.
+- The forum takes out of a reply a quotation of the whole post just above it (the site setting
+  "remove full quote"), a moment after the reply is posted: quote an earlier post, or a part of one.
 - The pinned icon of a topic's title is drawn after a reload; `the topic should be pinned` reads the
   forum's own state.
 - On a shared machine the browser on the host can lose a request when another container starts: run
