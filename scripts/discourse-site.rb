@@ -159,6 +159,13 @@ def cancel!
     UserDestroyer.new(Discourse.system_user).destroy(user, delete_posts: true, context: "Webship test site")
     say("deleted #{spec["username"]}")
   end
+  recount_tags!
+end
+
+# The forum counts a deleted topic in its tags' counts until its daily consistency job: the counts are
+# made again after the accounts' topics went, and after the sample content.
+def recount_tags!
+  Tag.ensure_consistency! if Tag.respond_to?(:ensure_consistency!)
 end
 
 def list!
@@ -328,6 +335,7 @@ def seed!
   seed_topics!
   seed_messages!
   TopTopic.refresh!
+  recount_tags!
   say("the sample content")
 end
 
