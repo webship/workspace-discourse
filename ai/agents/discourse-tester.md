@@ -72,8 +72,8 @@ The rules of a suite:
 - Never create or delete an account in a suite: accounts are configuration.
 - Make the topics, replies and messages a scenario needs with `Given there is a topic "…" in "…" by "…"`,
   `Given there is a message "…" from "…" to "…"` and `Given "…" replied to the topic "…" with "…"`: the
-  steps delete them again after the scenario, with every topic, reply, bookmark, like and draft the
-  scenario makes on screen. Say first that a topic the composer makes does not exist
+  steps delete them again after the scenario, with every topic, reply, bookmark, like, flag and draft
+  the scenario makes on screen. Say first that a topic the composer makes does not exist
   (`Given there is no topic "…"`). Never change a topic a person uses.
 - No platform name in a step phrase.
 - `Given I am a logged in user with the "…" user` takes the account's session over after its first
