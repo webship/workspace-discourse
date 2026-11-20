@@ -177,6 +177,10 @@ bash cmd-tools-add-users.sh myforum discourse              # the core's tool: th
 bash cmd-tools-cancel-users.sh myforum discourse
 ```
 
+Deleting the accounts deletes their posts, the sample content among them: after `--add-users`,
+`--sample-data` makes it again (the features of the step pack read it), and the tags count their
+topics again.
+
 ### Test a forum
 
 ```bash
